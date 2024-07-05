@@ -13,7 +13,10 @@ export function InputSelect<TItem>({
   loadingLabel,
 }: InputSelectProps<TItem>) {
   const [selectedValue, setSelectedValue] = useState<TItem | null>(defaultValue ?? null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({
+    top: 0,
+    left: 0,
+  });
 
   const onChange = useCallback<InputSelectOnChange<TItem>>(
     (selectedItem) => {
@@ -27,13 +30,13 @@ export function InputSelect<TItem>({
     [consumerOnChange]
   )
 
+  const dropdownRef = useRef<HTMLDivElement | null>(null)
   const updateDropdownPosition = useCallback(() => {
     const dropdown = dropdownRef.current
     const input = dropdown?.parentElement?.querySelector(".RampInputSelect--input")
     if (input && dropdown) {
-      const { top, left, height } = input.getBoundingClientRect()
-      dropdown.style.top = `${window.scrollY + top + height}px`
-      dropdown.style.left = `${window.scrollX + left}px`
+      const { top, left } = input.getBoundingClientRect()
+      setDropdownPosition({ top: top, left: left });
     }
   }, [])
 
@@ -43,10 +46,8 @@ export function InputSelect<TItem>({
     }
 
     window.addEventListener("scroll", handleScroll)
-    window.addEventListener("resize", handleScroll)
     return () => {
       window.removeEventListener("scroll", handleScroll)
-      window.removeEventListener("resize", handleScroll)
     }
   }, [updateDropdownPosition])
 
