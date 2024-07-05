@@ -89,20 +89,6 @@ function mockApiLogger({
     return
   }
 
-  console.log(`%c--Fake Request Debugger-- %c${message}`, "color: #717171", getTitleColor())
-  console.log(data)
-
-  function getTitleColor() {
-    if (type === "error") {
-      return "color: #d93e3e;"
-    }
-
-    if (type === "info") {
-      return "color: #1670d2;"
-    }
-
-    return "color: #548a54;"
-  }
 }
 
 function getTimeout() {

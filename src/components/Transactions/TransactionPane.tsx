@@ -6,8 +6,17 @@ export const TransactionPane: TransactionPaneComponent = ({
   transaction,
   loading,
   setTransactionApproval: consumerSetTransactionApproval,
+  approved,
 }) => {
-  const [approved, setApproved] = useState(transaction.approved)
+  const [localApproved, setLocalApproved] = useState(approved)
+
+  const handleCheckboxChange = async (newValue: boolean) => {
+    await consumerSetTransactionApproval({
+      transactionId: transaction.id,
+      newValue,
+    })
+    setLocalApproved(newValue)
+  }
 
   return (
     <div className="RampPane">
@@ -20,16 +29,9 @@ export const TransactionPane: TransactionPaneComponent = ({
       </div>
       <InputCheckbox
         id={transaction.id}
-        checked={approved}
+        checked={localApproved}
         disabled={loading}
-        onChange={async (newValue) => {
-          await consumerSetTransactionApproval({
-            transactionId: transaction.id,
-            newValue,
-          })
-
-          setApproved(newValue)
-        }}
+        onChange={handleCheckboxChange}
       />
     </div>
   )

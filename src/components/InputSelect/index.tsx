@@ -1,5 +1,5 @@
 import Downshift from "downshift"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import classNames from "classnames"
 import { DropdownPosition, GetDropdownPositionFn, InputSelectOnChange, InputSelectProps } from "./types"
 
@@ -16,7 +16,7 @@ export function InputSelect<TItem>({
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({
     top: 0,
     left: 0,
-  })
+  });
 
   const onChange = useCallback<InputSelectOnChange<TItem>>(
     (selectedItem) => {
@@ -29,6 +29,27 @@ export function InputSelect<TItem>({
     },
     [consumerOnChange]
   )
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null)
+  const updateDropdownPosition = useCallback(() => {
+    const dropdown = dropdownRef.current
+    const input = dropdown?.parentElement?.querySelector(".RampInputSelect--input")
+    if (input && dropdown) {
+      const { top, left } = input.getBoundingClientRect()
+      setDropdownPosition({ top: top, left: left });
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      updateDropdownPosition()
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [updateDropdownPosition])
 
   return (
     <Downshift<TItem>
@@ -59,19 +80,20 @@ export function InputSelect<TItem>({
             <div
               className="RampInputSelect--input"
               onClick={(event) => {
-                setDropdownPosition(getDropdownPosition(event.target))
                 toggleProps.onClick(event)
+                updateDropdownPosition()
               }}
             >
               {inputValue}
             </div>
 
             <div
+              ref={dropdownRef}
               className={classNames("RampInputSelect--dropdown-container", {
                 "RampInputSelect--dropdown-container-opened": isOpen,
               })}
               {...getMenuProps()}
-              style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+              style={{ position: "absolute" }}
             >
               {renderItems()}
             </div>
@@ -115,17 +137,4 @@ export function InputSelect<TItem>({
       }}
     </Downshift>
   )
-}
-
-const getDropdownPosition: GetDropdownPositionFn = (target) => {
-  if (target instanceof Element) {
-    const { top, left } = target.getBoundingClientRect()
-    const { scrollY } = window
-    return {
-      top: scrollY + top + 63,
-      left,
-    }
-  }
-
-  return { top: 0, left: 0 }
 }
